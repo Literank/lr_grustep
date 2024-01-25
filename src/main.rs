@@ -1,26 +1,64 @@
-use std::env;
-
-use lr_grustep::grep;
+use clap::{App, Arg};
+use lr_grustep::{grep, grep_count, grep_recursive, GrepOptions, MatchResult};
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    // Define command-line arguments using clap
+    let matches = App::new("grustep")
+        .version("0.1.0")
+        .author("literank")
+        .about("A grep-like utility in Rust")
+        .arg(Arg::with_name("pattern").required(true).index(1).help("The pattern to search for"))
+        .arg(Arg::with_name("file_path").required(true).index(2).help("The file to search in"))
+        .arg(Arg::with_name("count").short("c").long("count").help("Only a count of selected lines is written to standard output"))
+        .arg(Arg::with_name("ignore-case").short("i").long("ignore-case").help("Perform case-insensitive matching"))
+        .arg(Arg::with_name("line-number").short("n").long("line-number").help("Each output line is preceded by its relative line number in the file, starting at line 1"))
+        .arg(Arg::with_name("recursive").short("r").long("recursive").help("Recursively search subdirectories listed"))
+        .arg(Arg::with_name("invert-match").short("v").long("invert-match").help("Selected lines are those not matching any of the specified patterns"))
+        .get_matches();
 
-    if args.len() < 3 {
-        eprintln!("Usage: {} <pattern> <file_path>", args[0]);
-        std::process::exit(1);
-    }
+    // Extract command-line arguments
+    let pattern = matches.value_of("pattern").unwrap();
+    let file_path = matches.value_of("file_path").unwrap();
+    let options = GrepOptions {
+        ignore_case: matches.is_present("ignore-case"),
+        invert_match: matches.is_present("invert-match"),
+    };
 
-    let pattern = &args[1];
-    let file_path = &args[2];
+    let result = if matches.is_present("recursive") {
+        grep_recursive(pattern, file_path.as_ref(), &options)
+    } else {
+        grep(pattern, file_path.as_ref(), &options)
+    };
 
-    match grep(pattern, file_path) {
-        Ok(matched_lines) => {
-            for line in matched_lines {
-                println!("{}", line);
+    match result {
+        Ok(result) => {
+            if matches.is_present("count") {
+                println!("{}", grep_count(&result));
+            } else {
+                print_result(&result, matches.is_present("line-number"))
             }
         }
         Err(err) => {
             eprintln!("Error: {}", err);
+        }
+    }
+}
+
+fn print_result(result: &MatchResult, show_line_number: bool) {
+    let mut current_file = "";
+    let file_count = result.len();
+
+    for (file_path, items) in result {
+        for item in items {
+            if file_count > 1 && file_path != current_file {
+                current_file = &file_path;
+                println!("\n{}:", current_file);
+            }
+            if show_line_number {
+                println!("{}: {}", item.line_number, item.line);
+            } else {
+                println!("{}", item.line);
+            }
         }
     }
 }

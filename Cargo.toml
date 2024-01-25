@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 regex = "1.5"
-
+clap = "2.33"
+walkdir = "2.3"
