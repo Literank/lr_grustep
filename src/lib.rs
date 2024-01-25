@@ -58,7 +58,7 @@ pub fn grep_recursive(
         let entry = entry?;
         if entry.file_type().is_file() {
             let file_path = entry.path();
-            let result = grep(pattern, &file_path, options)?;
+            let result = grep(pattern, file_path, options)?;
             results.extend(result);
         }
     }
@@ -68,7 +68,7 @@ pub fn grep_recursive(
 fn read_file_lines(file_path: &Path) -> Result<Vec<String>, io::Error> {
     let file = fs::File::open(file_path)?;
     let reader = io::BufReader::new(file);
-    Ok(reader.lines().filter_map(|line| line.ok()).collect())
+    Ok(reader.lines().map_while(Result::ok).collect())
 }
 
 fn filter_lines(pattern: &Regex, lines: &[String], flag: bool) -> Vec<MatchItem> {
