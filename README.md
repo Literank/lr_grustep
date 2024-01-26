@@ -11,17 +11,25 @@ make install
 ## Usage
 
 ```txt
-Options:
-  -c    count
-        Only a count of selected lines is written to standard output.
-  -i    ignore-case
-        Perform case insensitive matching. By default, it is case sensitive.
-  -n    line-number
-        Each output line is preceded by its relative line number in the file, starting at line 1. This option is ignored if -count is specified.
-  -r    recursive
-        Recursively search subdirectories listed.
-  -v    invert-match
-        Selected lines are those not matching any of the specified patterns.
+grustep 0.1.0
+literank.com
+A grep-like utility in Rust
+
+USAGE:
+    grustep [FLAGS] <pattern> [file_paths]...
+
+FLAGS:
+    -c, --count           Only a count of selected lines is written to standard output
+    -h, --help            Prints help information
+    -i, --ignore-case     Perform case-insensitive matching
+    -v, --invert-match    Selected lines are those not matching any of the specified patterns
+    -n, --line-number     Each output line is preceded by its relative line number in the file, starting at line 1
+    -r, --recursive       Recursively search subdirectories listed
+    -V, --version         Prints version information
+
+ARGS:
+    <pattern>          The pattern to search for
+    <file_paths>...    The files to search in
 ```
 
 ### Search
@@ -29,7 +37,7 @@ Options:
 ```bash
 grustep pattern *txt
 
-cat *py | grustep pattern
+cat *rs | grustep pattern
 ```
 
 ### Recursive Search
@@ -41,7 +49,7 @@ grustep -r pattern .
 ### Search Multiple Files
 
 ```bash
-grustep pattern a.txt b.py c.cpp
+grustep pattern a.txt b.rs c.cpp
 ```
 
 ### Show Line Numbers
