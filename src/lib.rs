@@ -44,6 +44,24 @@ pub fn grep(
     Ok(result)
 }
 
+pub fn grep_multi(
+    pattern: &str,
+    file_paths: &Vec<&str>,
+    options: &GrepOptions,
+) -> Result<MatchResult, io::Error> {
+    if file_paths.is_empty() {
+        // For pipes like "cat a.txt | ..."
+        return grep(pattern, Path::new(""), options);
+    }
+    let mut results = MatchResult::new();
+    for &file_path in file_paths {
+        if let Ok(result) = grep(pattern, Path::new(file_path), options) {
+            results.extend(result);
+        }
+    }
+    Ok(results)
+}
+
 pub fn grep_count(result: &MatchResult) -> usize {
     result.values().map(|v| v.len()).sum()
 }
@@ -59,6 +77,20 @@ pub fn grep_recursive(
         if entry.file_type().is_file() {
             let file_path = entry.path();
             let result = grep(pattern, file_path, options)?;
+            results.extend(result);
+        }
+    }
+    Ok(results)
+}
+
+pub fn grep_recursive_multi(
+    pattern: &str,
+    dir_paths: &Vec<&str>,
+    options: &GrepOptions,
+) -> Result<MatchResult, io::Error> {
+    let mut results = MatchResult::new();
+    for &dir_path in dir_paths {
+        if let Ok(result) = grep_recursive(pattern, Path::new(dir_path), options) {
             results.extend(result);
         }
     }
