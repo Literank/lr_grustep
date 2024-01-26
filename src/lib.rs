@@ -66,8 +66,12 @@ pub fn grep_recursive(
 }
 
 fn read_file_lines(file_path: &Path) -> Result<Vec<String>, io::Error> {
-    let file = fs::File::open(file_path)?;
-    let reader = io::BufReader::new(file);
+    let reader: Box<dyn BufRead> = if file_path.components().count() == 0 {
+        Box::new(io::BufReader::new(io::stdin()))
+    } else {
+        let file = fs::File::open(file_path)?;
+        Box::new(io::BufReader::new(file))
+    };
     Ok(reader.lines().map_while(Result::ok).collect())
 }
 

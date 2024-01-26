@@ -8,7 +8,7 @@ fn main() {
         .author("literank")
         .about("A grep-like utility in Rust")
         .arg(Arg::with_name("pattern").required(true).index(1).help("The pattern to search for"))
-        .arg(Arg::with_name("file_path").required(true).index(2).help("The file to search in"))
+        .arg(Arg::with_name("file_path").required(false).index(2).help("The file to search in"))
         .arg(Arg::with_name("count").short("c").long("count").help("Only a count of selected lines is written to standard output"))
         .arg(Arg::with_name("ignore-case").short("i").long("ignore-case").help("Perform case-insensitive matching"))
         .arg(Arg::with_name("line-number").short("n").long("line-number").help("Each output line is preceded by its relative line number in the file, starting at line 1"))
@@ -18,13 +18,13 @@ fn main() {
 
     // Extract command-line arguments
     let pattern = matches.value_of("pattern").unwrap();
-    let file_path = matches.value_of("file_path").unwrap();
+    let file_path = matches.value_of("file_path").unwrap_or("");
     let options = GrepOptions {
         ignore_case: matches.is_present("ignore-case"),
         invert_match: matches.is_present("invert-match"),
     };
 
-    let result = if matches.is_present("recursive") {
+    let result = if matches.is_present("recursive") && !file_path.is_empty() {
         grep_recursive(pattern, file_path.as_ref(), &options)
     } else {
         grep(pattern, file_path.as_ref(), &options)
